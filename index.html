@@ -1,7 +1,228 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Connections Game</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            margin: 0;
+            padding: 20px;
+            background-color: #f4f4f4;
+        }
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(4, 100px);
+            grid-gap: 10px;
+        }
+        .grid button {
+            padding: 20px;
+            font-size: 16px;
+            border: 1px solid #ccc;
+            background-color: #fff;
+            cursor: pointer;
+            border-radius: 5px;
+            transition: background-color 0.2s;
+        }
+        .grid button.selected {
+            background-color: #007BFF;
+            color: white;
+        }
+        .grid button.frozen {
+            background-color: #28a745;
+            color: white;
+            cursor: not-allowed;
+        }
+        .category {
+            margin-top: 20px;
+            padding: 10px;
+            border: 1px solid #ccc;
+            background-color: #fff;
+            border-radius: 5px;
+        }
+        .restart {
+            margin-top: 20px;
+            padding: 10px 20px;
+            font-size: 16px;
+            background-color: #dc3545;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+        .restart:hover {
+            background-color: #c82333;
+        }
+        .lives {
+            margin-bottom: 10px;
+            font-size: 18px;
+        }
+        .game-over {
+            text-align: center;
+            margin-top: 20px;
+            font-size: 20px;
+            color: red;
+        }
+        .solution {
+            margin-top: 10px;
+            font-size: 16px;
+        }
+    </style>
+</head>
 <body>
-<h1>Hello World</h1>
-<p>I'm hosted with GitHub Pages.</p>
+    <h1>Connections Game</h1>
+    <div class="lives" id="livesDisplay">
+        Lives: 4
+    </div>
+    <div class="grid" id="buttonGrid">
+        </div>
+    <div class="category" id="categoryDisplay">
+        <strong>Selected Category:</strong> <span id="category"></span>
+    </div>
+    <button class="restart" id="restartButton">Restart Game</button>
+    <div class="game-over" id="gameOverMessage" style="display: none;">
+        Game Over!
+        <div class="solution" id="solutionDisplay"></div>
+    </div>
+
+    <script>
+        // Predefined categories
+        const categories = {
+            "Фрукты": ["Яблоко", "Банан", "Апельсин", "Виноград"],
+            "Животные": ["Собака", "Кот", "Лев", "Слон"],
+            "Цвета": ["Красный", "Голубой", "Зелёный", "Жёлтый"],
+            "Страны": ["Индия", "США", "Франция", "Япония"]
+        };
+
+        const grid = document.getElementById('buttonGrid');
+        const selectedButtons = [];
+        const frozenCategories = new Set();
+        let lives = 4;
+        const livesDisplay = document.getElementById('livesDisplay');
+        const gameOverMessage = document.getElementById('gameOverMessage');
+        const solutionDisplay = document.getElementById('solutionDisplay');
+
+        function initializeGame() {
+            // Clear existing grid
+            grid.innerHTML = '';
+
+            // Reset game state
+            frozenCategories.clear();
+            selectedButtons.length = 0;
+            lives = 4;
+            updateLivesDisplay();
+            gameOverMessage.style.display = 'none';
+
+            // Shuffle and distribute words across buttons
+            const words = Object.values(categories).flat();
+            words.sort(() => Math.random() - 0.5);
+
+            words.forEach(word => {
+                const button = document.createElement('button');
+                button.textContent = word;
+                button.addEventListener('click', () => handleButtonClick(button));
+                grid.appendChild(button);
+            });
+
+            // Clear category display
+            document.getElementById('category').textContent = '';
+        }
+
+        function handleButtonClick(button) {
+            if (button.classList.contains('frozen')) {
+                return; // Ignore clicks on frozen buttons
+            }
+
+            if (button.classList.contains('selected')) {
+                // If already selected, deselect
+                button.classList.remove('selected');
+                const index = selectedButtons.indexOf(button);
+                if (index > -1) selectedButtons.splice(index, 1);
+            } else {
+                // Select button
+                if (selectedButtons.length < 4) {
+                    button.classList.add('selected');
+                    selectedButtons.push(button);
+                }
+            }
+
+            if (selectedButtons.length === 4) {
+                // Check if the selection is correct
+                checkCategory();
+            }
+        }
+
+        function checkCategory() {
+            const selectedWords = selectedButtons.map(button => button.textContent);
+            let correctCategory = null;
+
+            // Check if selected words match any category
+            for (const [category, words] of Object.entries(categories)) {
+                if (words.every(word => selectedWords.includes(word))) {
+                    correctCategory = category;
+                    break;
+                }
+            }
+
+            if (correctCategory) {
+                freezeCategory(correctCategory, selectedButtons);
+            } else {
+                // If not a valid category, deselect buttons and lose a life
+                lives--;
+                updateLivesDisplay();
+                if (lives === 0) {
+                    endGame();
+                } else {
+                    alert("Неверная категория! Попробуй снова");
+                    selectedButtons.forEach(button => button.classList.remove('selected'));
+                    selectedButtons.length = 0; // Reset selection
+                }
+            }
+        }
+
+        function freezeCategory(category, buttons) {
+            alert(`Верно! Это категория: ${category}`);
+            buttons.forEach(button => {
+                button.classList.remove('selected');
+                button.classList.add('frozen');
+            });
+
+            frozenCategories.add(category);
+            selectedButtons.length = 0; // Reset selection
+
+            // Optionally: End game if all categories are frozen
+            if (frozenCategories.size === Object.keys(categories).length) {
+                alert("Вы завершили игру");
+            }
+        }
+
+        function updateLivesDisplay() {
+            livesDisplay.textContent = `Lives: ${lives}`;
+        }
+
+        function endGame() {
+            gameOverMessage.style.display = 'block';
+            let solutionText = "Solution: \n";
+            for (const category in categories) {
+                solutionText += `${category}: ${categories[category].join(', ')}\n`;
+            }
+            solutionDisplay.textContent = solutionText;
+
+            // Disable further button clicks
+            document.querySelectorAll('.grid button').forEach(button => {
+                button.disabled = true;
+            });
+        }
+
+        // Restart button functionality
+        document.getElementById('restartButton').addEventListener('click', initializeGame);
+
+        // Initialize game on load
+        initializeGame();
+    </script>
 </body>
 </html>
