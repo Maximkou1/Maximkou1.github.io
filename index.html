@@ -1,6 +1,30 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+	<script type="module">
+  	// Import the functions you need from the SDKs you need
+ 	 import { initializeApp } from "https://www.gstatic.com/firebasejs/11.7.1/firebase-app.js";
+  	import { getAnalytics } from "https://www.gstatic.com/firebasejs/11.7.1/firebase-analytics.js";
+	  // TODO: Add SDKs for Firebase products that you want to use
+ 	 // https://firebase.google.com/docs/web/setup#available-libraries
+
+ 	 // Your web app's Firebase configuration
+ 	 // For Firebase JS SDK v7.20.0 and later, measurementId is optional
+ 	 const firebaseConfig = {
+  	  apiKey: "AIzaSyB42uFEqPHEZu43_DujBIW5K1sA59aCMfc",
+  	  authDomain: "runytconnections.firebaseapp.com",
+  	  projectId: "runytconnections",
+  	  storageBucket: "runytconnections.firebasestorage.app",
+  	  messagingSenderId: "270568210095",
+  	  appId: "1:270568210095:web:57cb4967dea44a13b71e5a",
+   	 measurementId: "G-DD7JF8MQCF"
+  	};
+
+  // Initialize Firebase
+  const app = initializeApp(firebaseConfig);
+  const analytics = getAnalytics(app);
+	</script>
+	
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Connections Game</title>
@@ -89,7 +113,9 @@
         <div class="solution" id="solutionDisplay"></div>
     </div>
 
-    <script>
+    <script type="module">
+        import { collection, addDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/11.7.1/firebase-firestore.js";
+
         // Predefined categories
         const categories = {
             "Фрукты": ["Яблоко", "Банан", "Апельсин", "Виноград"],
@@ -156,7 +182,7 @@
             }
         }
 
-        function checkCategory() {
+        async function checkCategory() {
             const selectedWords = selectedButtons.map(button => button.textContent);
             let correctCategory = null;
 
@@ -180,9 +206,21 @@
                     alert("Неверная категория! Попробуй снова");
                     selectedButtons.forEach(button => button.classList.remove('selected'));
                     selectedButtons.length = 0; // Reset selection
+
+                    // Save the incorrect attempt to Firestore
+                    try {
+                        const docRef = await addDoc(collection(window.db, "gameAttempts"), {
+                            attempt: selectedWords,
+                            timestamp: serverTimestamp()
+                        });
+                        console.log("Document written with ID: ", docRef.id);
+                    } catch (e) {
+                        console.error("Error adding document: ", e);
+                    }
                 }
             }
         }
+
 
         function freezeCategory(category, buttons) {
             alert(`Верно! Это категория: ${category}`);
