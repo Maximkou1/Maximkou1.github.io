@@ -1,175 +1,717 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="ru">
+
 <head>
-	<script type="module">
-  	// Import the functions you need from the SDKs you need
- 	import { initializeApp } from "https://www.gstatic.com/firebasejs/11.7.1/firebase-app.js";
-  	import { getAnalytics } from "https://www.gstatic.com/firebasejs/11.7.1/firebase-firestore.js";
-	  // TODO: Add SDKs for Firebase products that you want to use
- 	 // https://firebase.google.com/docs/web/setup#available-libraries
-
- 	 // Your web app's Firebase configuration
- 	 // For Firebase JS SDK v7.20.0 and later, measurementId is optional
- 	 const firebaseConfig = {
-  	  apiKey: "AIzaSyB42uFEqPHEZu43_DujBIW5K1sA59aCMfc",
-  	  authDomain: "runytconnections.firebaseapp.com",
-  	  projectId: "runytconnections",
-  	  storageBucket: "runytconnections.firebasestorage.app",
-  	  messagingSenderId: "270568210095",
-  	  appId: "1:270568210095:web:57cb4967dea44a13b71e5a",
-   	 measurementId: "G-DD7JF8MQCF"
-  	};
-
-  // Initialize Firebase
-  const app = initializeApp(firebaseConfig);
-  const analytics = getAnalytics(app);
-	</script>
-	
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Connections Game</title>
     <style>
         body {
-            font-family: Arial, sans-serif;
+            font-family: 'Inter', Arial, sans-serif;
+            /* Changed font */
             display: flex;
             flex-direction: column;
             align-items: center;
             margin: 0;
             padding: 20px;
-            background-color: #f4f4f4;
+            background-color: #f0f2f5;
+            color: #333;
         }
+
         .grid {
             display: grid;
-            grid-template-columns: repeat(4, 100px);
-            grid-gap: 10px;
+            grid-template-columns: repeat(4, minmax(80px, 120px));
+            grid-gap: 12px;
+            margin-bottom: 25px;
         }
+
         .grid button {
             padding: 20px;
-            font-size: 16px;
-            border: 1px solid #ccc;
-            background-color: #fff;
+            font-size: 1rem;
+            border: 1px solid #d1d5db;
+            background-color: #ffffff;
             cursor: pointer;
-            border-radius: 5px;
-            transition: background-color 0.2s;
+            border-radius: 8px;
+            transition: background-color 0.2s, transform 0.1s;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+            min-height: 60px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
         }
+
+        .grid button:hover {
+            background-color: #f3f4f6;
+            /* Light hover effect */
+        }
+
         .grid button.selected {
-            background-color: #007BFF;
+            background-color: #3b82f6;
+            /* Blue for selected */
             color: white;
+            transform: scale(0.95);
+            /* Slight shrink effect */
         }
+
         .grid button.frozen {
-            background-color: #28a745;
             color: white;
             cursor: not-allowed;
+            opacity: 0.9;
         }
-        .category {
+
+        /* Category-specific colors */
+        .grid button.frozen-1 {
+            background-color: #fef08a;
+            color: #713f12;
+        }
+
+        /* Yellow */
+        .grid button.frozen-2 {
+            background-color: #a7f3d0;
+            color: #047857;
+        }
+
+        /* Green */
+        .grid button.frozen-3 {
+            background-color: #bfdbfe;
+            color: #1e40af;
+        }
+
+        /* Blue */
+        .grid button.frozen-4 {
+            background-color: #e9d5ff;
+            color: #581c87;
+        }
+
+        /* Purple */
+
+
+        .category-display-container {
             margin-top: 20px;
-            padding: 10px;
-            border: 1px solid #ccc;
-            background-color: #fff;
-            border-radius: 5px;
+            padding: 15px;
+            border: 1px solid #e5e7eb;
+            background-color: #ffffff;
+            border-radius: 8px;
+            width: 100%;
+            max-width: 480px;
+            box-sizing: border-box;
         }
-        .restart {
-            margin-top: 20px;
-            padding: 10px 20px;
-            font-size: 16px;
-            background-color: #dc3545;
-            color: white;
-            border: none;
-            border-radius: 5px;
-            cursor: pointer;
+
+        .header-container {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            width: 100%;
+            max-width: 480px;
+            margin-bottom: 15px;
         }
-        .restart:hover {
-            background-color: #c82333;
-        }
+
         .lives {
             margin-bottom: 10px;
-            font-size: 18px;
+            font-size: 1.125rem;
+            /* Slightly larger */
+            font-weight: 500;
         }
+
+        .warning-message {
+            color: #f97316;
+            /* Orange for warning */
+            font-size: 1rem;
+            text-align: right;
+            min-height: 1.2em;
+        }
+
         .game-over {
             text-align: center;
-            margin-top: 20px;
-            font-size: 20px;
-            color: red;
+            margin-top: 25px;
+            font-size: 1.25rem;
+            color: #ef4444;
+            /* Red for game over */
+            display: none;
         }
+
         .solution {
+            margin-top: 15px;
+            font-size: 1rem;
+            background-color: #f9fafb;
+            padding: 10px;
+            border-radius: 6px;
+        }
+
+        /* Styles for the intro screen */
+        .intro-screen,
+        .rating-screen,
+        .final-screen {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 80vh;
+            padding: 20px;
+            box-sizing: border-box;
+            width: 100%;
+            max-width: 500px;
+            margin: auto;
+        }
+
+        .intro-screen {
+            background-color: #e0f7fa;
+        }
+
+        .rating-screen {
+            background-color: #ffecb3;
+        }
+
+        .final-screen {
+            background-color: #dcedc8;
+        }
+
+
+        .intro-screen h2,
+        .rating-screen h2,
+        .final-screen h2 {
+            font-size: 1.75em;
+            margin-bottom: 25px;
+            color: #111827;
+        }
+
+        .intro-screen input,
+        .rating-screen input[type="range"] {
+            padding: 12px;
+            font-size: 1rem;
+            margin-bottom: 20px;
+            border-radius: 6px;
+            border: 1px solid #ccc;
+            width: 80%;
+            max-width: 300px;
+        }
+
+        /* Common button styles */
+        .intro-screen button,
+        .rating-screen button,
+        #confirmButton,
+        #alreadySeenButton,
+        #nextScreenButton,
+        .final-screen button {
+            padding: 12px 24px;
+            font-size: 1rem;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: background-color 0.2s;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
             margin-top: 10px;
-            font-size: 16px;
+        }
+
+        .intro-screen button {
+            background-color: #10b981;
+        }
+
+        .intro-screen button:hover {
+            background-color: #059669;
+        }
+
+        .rating-screen button {
+            background-color: #3b82f6;
+        }
+
+        .rating-screen button:hover {
+            background-color: #2563eb;
+        }
+
+        .final-screen button {
+            background-color: #10b981;
+        }
+
+        .final-screen button:hover {
+            background-color: #059669;
+        }
+
+
+        #gameContainer {
+            display: none;
+            flex-direction: column;
+            align-items: center;
+            width: 100%;
+            padding: 10px;
+            box-sizing: border-box;
+        }
+
+        h1 {
+            font-size: 1.5rem;
+            margin-bottom: 15px;
+            color: #1f2937;
+        }
+
+
+        .rating-screen .rating-item {
+            margin-bottom: 20px;
+            text-align: center;
+            width: 100%;
+            max-width: 400px;
+        }
+
+        .rating-screen label {
+            display: block;
+            font-size: 1rem;
+            margin-bottom: 10px;
+        }
+
+
+        .incorrect {
+            animation: incorrect-animation 0.7s ease-in-out;
+        }
+
+        .already-tried {
+            animation: already-tried-animation 0.7s ease-in-out;
+        }
+
+        @keyframes incorrect-animation {
+            0%,
+            100% {
+                background-color: white;
+                transform: translateX(0);
+            }
+
+            20% {
+                background-color: #fee2e2;
+                transform: translateX(-5px);
+            }
+
+            40% {
+                background-color: #fee2e2;
+                transform: translateX(5px);
+            }
+
+            60% {
+                background-color: #fee2e2;
+                transform: translateX(-5px);
+            }
+
+            80% {
+                background-color: #fee2e2;
+                transform: translateX(5px);
+            }
+        }
+
+        @keyframes already-tried-animation {
+            0%,
+            100% {
+                background-color: white;
+                transform: translateX(0);
+            }
+
+            20% {
+                background-color: #fff3e0;
+                transform: translateX(-3px);
+            }
+
+            40% {
+                background-color: #fff3e0;
+                transform: translateX(3px);
+            }
+
+            60% {
+                background-color: #fff3e0;
+                transform: translateX(-3px);
+            }
+
+            80% {
+                background-color: #fff3e0;
+                transform: translateX(3px);
+            }
+        }
+
+
+        #confirmButton {
+            background-color: #2563eb;
+        }
+
+        #confirmButton:hover {
+            background-color: #1d4ed8;
+        }
+
+        #alreadySeenButton {
+            background-color: #f59e0b;
+        }
+
+        #alreadySeenButton:hover {
+            background-color: #d97706;
+        }
+
+        #nextScreenButton {
+            background-color: #14b8a6;
+            margin-top: 15px;
+        }
+
+        #nextScreenButton:hover {
+            background-color: #0d9488;
+        }
+
+
+        .rating-scale {
+            display: grid;
+            grid-template-columns: repeat(11, 1fr);
+            margin-top: 8px;
+            font-size: 0.8em;
+            color: #4b5563;
+            width: 100%;
+        }
+
+        .rating-scale span {
+            text-align: center;
+        }
+
+        .revealed-category-title {
+            padding: 10px;
+            margin-bottom: 8px;
+            border-radius: 6px;
+            font-weight: bold;
+            text-align: center;
+            color: #333;
+        }
+
+        .revealed-category-title.frozen-1 {
+            background-color: #fef08a;
+            color: #713f12;
+        }
+
+        .revealed-category-title.frozen-2 {
+            background-color: #a7f3d0;
+            color: #047857;
+        }
+
+        .revealed-category-title.frozen-3 {
+            background-color: #bfdbfe;
+            color: #1e40af;
+        }
+
+        .revealed-category-title.frozen-4 {
+            background-color: #e9d5ff;
+            color: #581c87;
         }
     </style>
-</head>
-<body>
-    <h1>Connections Game</h1>
-    <div class="lives" id="livesDisplay">
-        Lives: 4
-    </div>
-    <div class="grid" id="buttonGrid">
-        </div>
-    <div class="category" id="categoryDisplay">
-        <strong>Selected Category:</strong> <span id="category"></span>
-    </div>
-    <button class="restart" id="restartButton">Restart Game</button>
-    <div class="game-over" id="gameOverMessage" style="display: none;">
-        Game Over!
-        <div class="solution" id="solutionDisplay"></div>
-    </div>
-
     <script type="module">
-        import { collection, addDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/11.7.1/firebase-firestore.js";
+        import {
+            initializeApp
+        } from "https://www.gstatic.com/firebasejs/11.7.1/firebase-app.js";
+        import {
+            getFirestore,
+            collection,
+            addDoc,
+            serverTimestamp,
+            getDocs,
+            doc,
+            setDoc,
+            updateDoc
+        } from "https://www.gstatic.com/firebasejs/11.7.1/firebase-firestore.js";
 
-        // Predefined categories
-        const categories = {
-            "Фрукты": ["Яблоко", "Банан", "Апельсин", "Виноград"],
-            "Животные": ["Собака", "Кот", "Лев", "Слон"],
-            "Цвета": ["Красный", "Голубой", "Зелёный", "Жёлтый"],
-            "Страны": ["Индия", "США", "Франция", "Япония"]
+        const firebaseConfig = {
+             	apiKey: "AIzaSyB42uFEqPHEZu43_DujBIW5K1sA59aCMfc",
+  	 		 	authDomain: "runytconnections.firebaseapp.com",
+  				projectId: "runytconnections",
+  	  			storageBucket: "runytconnections.firebasestorage.app",
+				messagingSenderId: "270568210095",
+  	  			appId: "1:270568210095:web:57cb4967dea44a13b71e5a",
+   	 			measurementId: "G-DD7JF8MQCF"
         };
 
+        let db;
+        try {
+            const app = initializeApp(firebaseConfig);
+            db = getFirestore(app);
+            console.log("Firebase initialized successfully.");
+        } catch (error) {
+            console.error("Firebase initialization error:", error);
+            alert("Ошибка при инициализации Firebase. Проверьте конфигурацию и подключение к интернету. (См. консоль для деталей)");
+        }
+
+        const introScreen = document.getElementById('introScreen');
+        const gameContainer = document.getElementById('gameContainer');
+        const nameInput = document.getElementById('nameInput');
         const grid = document.getElementById('buttonGrid');
-        const selectedButtons = [];
-        const frozenCategories = new Set();
-        let lives = 4;
         const livesDisplay = document.getElementById('livesDisplay');
         const gameOverMessage = document.getElementById('gameOverMessage');
         const solutionDisplay = document.getElementById('solutionDisplay');
+        const ratingScreen = document.getElementById('ratingScreen');
+        const finalScreen = document.getElementById('finalScreen');
+        const warningMessage = document.getElementById('warningMessage');
+        const confirmButton = document.getElementById('confirmButton');
+        const categoryDisplayContainer = document.getElementById('categoryDisplayContainer');
+        const puzzleNumberDisplay = document.getElementById('puzzleNumberDisplay');
+        const alreadySeenButton = document.getElementById('alreadySeenButton');
+        const nextScreenButton = document.getElementById('nextScreenButton');
+        const nytQuestion = document.getElementById('nytQuestion');
+        const nytYes = document.getElementById('nytYes');
+        const nytNo = document.getElementById('nytNo');
+        const startGameButton = document.getElementById('startGameButton');
 
-        function initializeGame() {
-            // Clear existing grid
-            grid.innerHTML = '';
+        const selectedButtons = [];
+        const frozenCategoriesData = [];
+        let lives = 4;
+        let categories = {};
+
+        let currentGameRound = 1;
+        const totalGameRounds = 1; // Determines when the "final screen" appears
+        let currentGlobalPuzzleNumber = 0;
+
+        let categoryConfirmed = false;
+        let playerName = "";
+        let currentGameSetId = null;
+
+        let currentRoundSessionDocId = null;
+        let orderedCategoryNames = [];
+        let previousAttemptsThisRound = [];
+        let playsNYT = null;
+
+        let seenGameSetIdsThisSession = new Set();
+
+        nameInput.addEventListener('input', () => {
+            const nameIsEntered = nameInput.value.trim() !== "";
+            // Enable/disable NYT question buttons based on name input
+            nytYes.disabled = !nameIsEntered;
+            nytNo.disabled = !nameIsEntered;
+            nytYes.style.opacity = nameIsEntered ? 1 : 0.6;
+            nytNo.style.opacity = nameIsEntered ? 1 : 0.6;
+
+            // Enable/disable start game button based on name input and NYT answer
+            if (nameIsEntered && playsNYT !== null) {
+                startGameButton.disabled = false;
+                startGameButton.style.opacity = 1;
+            } else {
+                startGameButton.disabled = true;
+                startGameButton.style.opacity = 0.6;
+            }
+        });
+
+
+        function shuffleArray(array) {
+            for (let i = array.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [array[i], array[j]] = [array[j], array[i]];
+            }
+        }
+
+        function getCategoryColorClass(index) {
+            const colorClasses = ['frozen-1', 'frozen-2', 'frozen-3', 'frozen-4'];
+            return colorClasses[index % colorClasses.length];
+        }
+
+        // recordNYTAnswer
+        function recordNYTAnswer(answer) {
+            playsNYT = answer;
+            // Disable the NYT buttons after an answer
+            nytYes.disabled = true;
+            nytNo.disabled = true;
+            nytYes.style.opacity = 0.6;
+            nytNo.style.opacity = 0.6;
+
+            const nameIsEntered = nameInput.value.trim() !== "";
+            // If name is also entered, enable the start game button
+            if (nameIsEntered) {
+                startGameButton.disabled = false;
+                startGameButton.style.opacity = 1;
+            } else {
+                // If name is not entered, start game button remains disabled
+                startGameButton.disabled = true;
+                startGameButton.style.opacity = 0.6;
+            }
+        }
+        window.recordNYTAnswer = recordNYTAnswer;
+
+        // startGame
+        window.startGame = async () => {
+            playerName = nameInput.value.trim().replace(/\s+/g, '_');
+            if (playerName && playsNYT !== null) {
+                currentGlobalPuzzleNumber = 0;
+                currentGameRound = 1;
+                seenGameSetIdsThisSession.clear(); // Clear seen set for a new player session
+
+                // Ensure "Play Again" button is visible and "all seen" message is hidden on final screen
+                const playAgainBtn = document.getElementById('playAgainButton');
+                if (playAgainBtn) playAgainBtn.style.display = 'block'; // Default to visible
+                const allSeenMessage = document.getElementById('allPuzzlesSeenMessage');
+                if (allSeenMessage) allSeenMessage.style.display = 'none';
+
+
+                introScreen.style.display = 'none';
+                // gameContainer display is handled by initializeNewRound
+
+                const puzzleLoaded = await initializeNewRound();
+                if (!puzzleLoaded) {
+                    // initializeNewRound already handled displaying the final screen or an error
+                    console.log("Could not load the first puzzle. All might have been seen or no sets available.");
+                }
+            } else if (!playerName) {
+                alert("Пожалуйста, введите ваше имя!");
+            } else if (playsNYT === null) {
+                alert("Пожалуйста, ответьте на вопрос про New York Times Connections!");
+            }
+        };
+
+        // initializeNewRound
+        async function initializeNewRound() {
+            if (!db) {
+                alert("База данных Firebase не инициализирована. Игра не может начаться.");
+                return false; // Indicate failure
+            }
+
+            // Hide game container initially; will be shown if a puzzle loads successfully
+            gameContainer.style.display = 'none';
+            ratingScreen.style.display = 'none'; // Also hide rating screen just in case
 
             // Reset game state
-            frozenCategories.clear();
+            grid.innerHTML = '';
             selectedButtons.length = 0;
+            frozenCategoriesData.length = 0;
+            updateRevealedCategoriesDisplay();
+            previousAttemptsThisRound = [];
+
             lives = 4;
             updateLivesDisplay();
             gameOverMessage.style.display = 'none';
+            solutionDisplay.innerHTML = '';
+            warningMessage.style.display = 'none';
+            confirmButton.style.display = 'none';
+            alreadySeenButton.style.display = 'block'; // Show "Already Seen" button
+            nextScreenButton.style.display = 'none';
+            categoryConfirmed = false;
+            currentGameSetId = null;
+            categories = {};
+            orderedCategoryNames = [];
 
-            // Shuffle and distribute words across buttons
-            const words = Object.values(categories).flat();
-            words.sort(() => Math.random() - 0.5);
+            document.querySelectorAll('.grid button').forEach(button => button.disabled = false);
 
-            words.forEach(word => {
-                const button = document.createElement('button');
-                button.textContent = word;
-                button.addEventListener('click', () => handleButtonClick(button));
-                grid.appendChild(button);
-            });
+            try {
+                const querySnapshot = await getDocs(collection(db, "gameSets"));
+                if (querySnapshot.empty) {
+                    console.error("No game sets found in Firestore 'gameSets' collection.");
+                    alert("Не удалось загрузить наборы игр: коллекция 'gameSets' пуста или не найдена.");
+                    alreadySeenButton.style.display = 'none'; // Hide as there are no games to skip
 
-            // Clear category display
-            document.getElementById('category').textContent = '';
+                    // Show final screen with "no puzzles" message
+                    finalScreen.style.display = 'flex';
+                    const playAgainBtn = document.getElementById('playAgainButton');
+                    if (playAgainBtn) playAgainBtn.style.display = 'none';
+                    const allSeenMessage = document.getElementById('allPuzzlesSeenMessage');
+                    if (allSeenMessage) {
+                        allSeenMessage.textContent = "Доступных головоломок нет.";
+                        allSeenMessage.style.display = 'block';
+                    }
+                    return false; // Indicate failure
+                }
+
+                const allFetchedGameSetDocs = querySnapshot.docs;
+                // Filter out game sets that have already been seen in this session
+                const availableGameSetDocs = allFetchedGameSetDocs.filter(doc => !seenGameSetIdsThisSession.has(doc.id));
+
+                if (availableGameSetDocs.length === 0) {
+                    console.log("All puzzles have been seen by the player in this session.");
+                    gameContainer.style.display = 'none'; // Ensure game container is hidden
+                    ratingScreen.style.display = 'none';
+                    finalScreen.style.display = 'flex';
+
+                    const playAgainBtn = document.getElementById('playAgainButton');
+                    if (playAgainBtn) playAgainBtn.style.display = 'none'; // Hide play again button
+
+                    const allSeenMessage = document.getElementById('allPuzzlesSeenMessage');
+                    if (allSeenMessage) {
+                        allSeenMessage.textContent = "Вы видели все категории"; // Set the specific message
+                        allSeenMessage.style.display = 'block'; // Show the message
+                    }
+                    alreadySeenButton.style.display = 'none'; // Hide "Already Seen" button
+                    return false; // Indicate failure (no new puzzles)
+                }
+                
+                currentGlobalPuzzleNumber++; // Increment puzzle number only if a new puzzle is available
+                puzzleNumberDisplay.textContent = currentGlobalPuzzleNumber;
+
+
+                const randomDocIndex = Math.floor(Math.random() * availableGameSetDocs.length);
+                const randomGameSetDoc = availableGameSetDocs[randomDocIndex];
+
+                currentGameSetId = randomGameSetDoc.id;
+                seenGameSetIdsThisSession.add(currentGameSetId); // Mark the current set as seen
+
+                const gameSetData = randomGameSetDoc.data();
+                if (gameSetData && gameSetData.categories && Array.isArray(gameSetData.categories)) {
+                    categories = {};
+                    orderedCategoryNames = [];
+                    gameSetData.categories.forEach((categoryMap) => { // Iterate array
+                        const categoryName = Object.keys(categoryMap)[0]; // Get the key (name)
+                        categories[categoryName] = Object.values(categoryMap)[0]; // Get the value (words)
+                        orderedCategoryNames.push(categoryName);
+                    });
+                } else {
+                    console.error("Selected game set has no 'categories' field or is malformed:", currentGameSetId, gameSetData);
+                    alert(`Ошибка в данных игры для набора '${currentGameSetId}'. Поле 'categories' отсутствует или имеет неверный формат.`);
+                    alreadySeenButton.style.display = 'none';
+                    return false; // Indicate failure
+                }
+
+                console.log(`Playing puzzle #${currentGlobalPuzzleNumber}, set: ${currentGameSetId}`, categories);
+
+                currentRoundSessionDocId = `${playerName}_${currentGameSetId}_PUZ${currentGlobalPuzzleNumber}_${new Date().toISOString().replace(/[:.]/g, '-')}`;
+
+                const sessionDocRefAttempts = doc(db, "gameAttempts", currentRoundSessionDocId);
+                await setDoc(sessionDocRefAttempts, {
+                    playerName: playerName,
+                    setId: currentGameSetId,
+                    puzzleNumber: currentGlobalPuzzleNumber,
+                    roundStartTime: serverTimestamp(),
+                    status: "started",
+                    livesInitial: lives,
+                    plays_NYT: playsNYT
+                }, { merge: true });
+                console.log(`Game session document created/updated in gameAttempts: ${currentRoundSessionDocId}`);
+
+                const words = Object.values(categories).flat();
+                shuffleArray(words);
+
+                words.forEach(word => {
+                    const button = document.createElement('button');
+                    button.textContent = word;
+                    button.addEventListener('click', () => handleButtonClick(button));
+                    grid.appendChild(button);
+                    if (word.length > 15) { button.style.fontSize = '0.6rem'; }
+                    else if (word.length > 10) { button.style.fontSize = '0.8rem'; }
+                });
+
+                gameContainer.style.display = 'flex'; // Now show the game container
+                // Ensure "Play Again" button is visible and "all seen" message is hidden on final screen
+                // (This is a good place to reset it if a new puzzle is loaded)
+                const playAgainBtn = document.getElementById('playAgainButton');
+                if (playAgainBtn) playAgainBtn.style.display = 'block';
+                const allSeenMessage = document.getElementById('allPuzzlesSeenMessage');
+                if (allSeenMessage) allSeenMessage.style.display = 'none';
+
+
+                return true; // Indicate success
+
+            } catch (error) {
+                console.error("Error fetching game sets or initializing session in Firestore:", error);
+                alert("Ошибка при загрузке наборов игр или инициализации сессии. Проверьте консоль.");
+                alreadySeenButton.style.display = 'none';
+                // Can redirect to intro or show an error message
+                introScreen.style.display = 'flex';
+                finalScreen.style.display = 'none';
+                return false; // Indicate failure
+            }
         }
 
+
         function handleButtonClick(button) {
-            if (button.classList.contains('frozen')) {
-                return; // Ignore clicks on frozen buttons
+            if (button.classList.contains('frozen') || categoryConfirmed) {
+                return;
             }
 
             if (button.classList.contains('selected')) {
-                // If already selected, deselect
                 button.classList.remove('selected');
                 const index = selectedButtons.indexOf(button);
                 if (index > -1) selectedButtons.splice(index, 1);
             } else {
-                // Select button
                 if (selectedButtons.length < 4) {
                     button.classList.add('selected');
                     selectedButtons.push(button);
@@ -177,90 +719,408 @@
             }
 
             if (selectedButtons.length === 4) {
-                // Check if the selection is correct
-                checkCategory();
+                confirmButton.style.display = 'block';
+            } else {
+                confirmButton.style.display = 'none';
+                warningMessage.style.display = 'none';
             }
         }
 
-        async function checkCategory() {
-            const selectedWords = selectedButtons.map(button => button.textContent);
-            let correctCategory = null;
+        function checkAlmostCategoryAfterIncorrectAttempt() {
+            const currentSelectedWords = selectedButtons.map(button => button.textContent);
+            let isOneAway = false;
 
-            // Check if selected words match any category
-            for (const [category, words] of Object.entries(categories)) {
-                if (words.every(word => selectedWords.includes(word))) {
-                    correctCategory = category;
-                    break;
+            for (const categoryName of orderedCategoryNames) {
+                if (frozenCategoriesData.some(fc => fc.name === categoryName)) continue;
+
+                const categoryWords = categories[categoryName];
+                const matchCount = currentSelectedWords.filter(word => categoryWords.includes(word)).length;
+
+                if (matchCount === 3) {
+                    const nonMatchingWord = currentSelectedWords.find(sw => !categoryWords.includes(sw));
+                    if (nonMatchingWord) {
+                        isOneAway = true;
+                        break;
+                    }
                 }
             }
 
-            if (correctCategory) {
-                freezeCategory(correctCategory, selectedButtons);
+            if (isOneAway) {
+                warningMessage.textContent = "Вы в одном шаге!";
+                warningMessage.style.display = 'block';
             } else {
-                // If not a valid category, deselect buttons and lose a life
+                warningMessage.style.display = 'none';
+            }
+        }
+
+
+        async function confirmAndCheckCategory() {
+            if (selectedButtons.length !== 4) return;
+
+            const currentSelectedWords = selectedButtons.map(button => button.textContent);
+            const sortedSelectedWordsString = [...currentSelectedWords].sort().join(',');
+
+            if (previousAttemptsThisRound.includes(sortedSelectedWordsString)) {
+                warningMessage.textContent = "Так уже пробовали";
+                warningMessage.style.display = 'block';
+
+                selectedButtons.forEach(button => button.classList.add('already-tried'));
+                setTimeout(() => {
+                    selectedButtons.forEach(button => {
+                        button.classList.remove('already-tried');
+                        button.classList.remove('selected');
+                    });
+                    selectedButtons.length = 0;
+                    confirmButton.style.display = 'none';
+                }, 1000);
+                return;
+            }
+
+            previousAttemptsThisRound.push(sortedSelectedWordsString);
+
+            categoryConfirmed = true;
+            confirmButton.style.display = 'none';
+            warningMessage.style.display = 'none';
+
+            let correctCategoryName = null;
+            let correctCategoryIndex = -1;
+
+            for (let i = 0; i < orderedCategoryNames.length; i++) {
+                const categoryName = orderedCategoryNames[i];
+                const categoryWords = categories[categoryName];
+
+                if (currentSelectedWords.every(sw => categoryWords.includes(sw)) && categoryWords.every(cw => currentSelectedWords.includes(cw))) {
+                    if (!frozenCategoriesData.some(fc => fc.name === categoryName)) {
+                        correctCategoryName = categoryName;
+                        correctCategoryIndex = i;
+                        break;
+                    }
+                }
+            }
+
+            if (db && currentRoundSessionDocId) {
+                const selectionsCollectionRef = collection(db, `gameAttempts/${currentRoundSessionDocId}/individual_word_selections`);
+                try {
+                    await addDoc(selectionsCollectionRef, {
+                        selectedWords: currentSelectedWords,
+                        isCorrectCategoryAttempt: (correctCategoryName !== null),
+                        foundCategoryName: correctCategoryName,
+                        isDuplicateAttempt: false, // Assuming this logic is handled by previousAttemptsThisRound check
+                        timestamp: serverTimestamp()
+                    });
+                } catch (e) {
+                    console.error("Error saving individual word selection: ", e);
+                }
+            }
+
+            if (correctCategoryName !== null) {
+                const colorClass = getCategoryColorClass(correctCategoryIndex);
+                freezeCategoryUI(correctCategoryName, colorClass, categories[correctCategoryName]);
+                if (frozenCategoriesData.length === orderedCategoryNames.length) {
+                    await handleRoundEnd(true);
+                } else {
+                    categoryConfirmed = false;
+                }
+            } else {
                 lives--;
                 updateLivesDisplay();
-                if (lives === 0) {
-                    endGame();
-                } else {
-                    alert("Неверная категория! Попробуй снова");
-                    selectedButtons.forEach(button => button.classList.remove('selected'));
-                    selectedButtons.length = 0; // Reset selection
+                checkAlmostCategoryAfterIncorrectAttempt();
 
-                    // Save the incorrect attempt to Firestore
-                    try {
-                        const docRef = await addDoc(collection(window.db, "gameAttempts"), {
-                            attempt: selectedWords,
-                            timestamp: serverTimestamp()
-                        });
-                        console.log("Document written with ID: ", docRef.id);
-                    } catch (e) {
-                        console.error("Error adding document: ", e);
+                selectedButtons.forEach(button => button.classList.add('incorrect'));
+                setTimeout(() => {
+                    selectedButtons.forEach(button => {button.classList.remove('incorrect');
+                        button.classList.remove('selected');
+                    });
+                    selectedButtons.length = 0;
+                    categoryConfirmed = false;
+                    if (lives === 0) {
+                        handleRoundEnd(false);
+                    }
+                }, 1000);
+            }
+        }
+        window.confirmAndCheckCategory = confirmAndCheckCategory;
+
+
+        function freezeCategoryUI(categoryName, colorClass, categoryWords) {
+            frozenCategoriesData.push({
+                name: categoryName,
+                colorClass: colorClass,
+                words: categoryWords
+            });
+            updateRevealedCategoriesDisplay();
+
+            selectedButtons.forEach(button => {
+                button.classList.remove('selected');
+                button.classList.add('frozen', colorClass);
+            });
+            selectedButtons.length = 0;
+        }
+
+        function updateRevealedCategoriesDisplay() {
+            categoryDisplayContainer.innerHTML = '';
+            const title = document.createElement('strong');
+            title.textContent = 'Найденные категории:';
+            categoryDisplayContainer.appendChild(title);
+
+            if (frozenCategoriesData.length === 0) {
+                return;
+            }
+
+            const sortedFrozenCategories = [...frozenCategoriesData].sort((a, b) => {
+                const indexA = orderedCategoryNames.indexOf(a.name);
+                const indexB = orderedCategoryNames.indexOf(b.name);
+                return indexA - indexB;
+            });
+
+            sortedFrozenCategories.forEach(catData => {
+                const categoryDiv = document.createElement('div');
+                categoryDiv.classList.add('revealed-category-title', catData.colorClass);
+                categoryDiv.textContent = `${catData.name}: ${catData.words.join(', ')}`;
+                categoryDisplayContainer.appendChild(categoryDiv);
+            });
+        }
+
+        const heartSymbol = '❤️';
+        function updateLivesDisplay() {
+            livesDisplay.textContent = `Жизни: ${heartSymbol.repeat(lives)}`;
+        }
+
+        async function handleRoundEnd(isWin) {
+            gameOverMessage.style.display = 'block';
+            alreadySeenButton.style.display = 'none';
+            confirmButton.style.display = 'none';
+
+            if (isWin) {
+                gameOverMessage.textContent = "Поздравляем! Все категории найдены!";
+                gameOverMessage.style.color = '#10b981';
+            } else {
+                gameOverMessage.textContent = "Игра окончена!";
+                gameOverMessage.style.color = '#ef4444';
+            }
+
+            let solutionTextHTML = "<strong>Правильные ответы раунда:</strong><br>";
+            orderedCategoryNames.forEach((catName, index) => {
+                const colorClass = getCategoryColorClass(index);
+                const foundCategoryData = frozenCategoriesData.find(fc => fc.name === catName);
+                const prefix = foundCategoryData ? `✓ (${catName})` : `✗ (${catName})`;
+                solutionTextHTML += `<div class="revealed-category-title ${colorClass}">${prefix}: ${categories[catName].join(', ')}</div>`;
+            });
+            solutionDisplay.innerHTML = solutionTextHTML;
+
+            document.querySelectorAll('.grid button').forEach(button => {
+                button.disabled = true;
+                if (!button.classList.contains('frozen')) {
+                    button.style.opacity = "0.5";
+                }
+            });
+            nextScreenButton.style.display = 'block';
+            if (db && currentRoundSessionDocId) {
+                const livesSpent = 4 - lives;
+                const sessionDocRef = doc(db, "gameAttempts", currentRoundSessionDocId);
+                try {
+                    await updateDoc(sessionDocRef, {
+                        finalLivesSpent: livesSpent,
+                        roundWon: isWin,
+                        status: "completed",
+                        roundEndTime: serverTimestamp(),
+                        skippedSet: false // Explicitly set skippedSet to false for normal completion
+                    });
+                } catch (e) {
+                    console.error("Error updating game attempt session: ", e);
+                }
+            }
+        }
+        window.proceedToRatingScreen = () => {
+            gameContainer.style.display = 'none';
+            ratingScreen.style.display = 'flex';
+            document.getElementById('overallRating').value = 5;
+            document.getElementById('overallRatingValue').textContent = 5;
+            document.getElementById('categoryMeaningfulness').value = 5;
+            document.getElementById('categoryMeaningfulnessValue').textContent = 5;
+            document.getElementById('categoryCreativity').value = 5;
+            document.getElementById('categoryCreativityValue').textContent = 5;
+        };
+
+        // handleAlreadySeen
+        window.handleAlreadySeen = async () => {
+            if (db && currentRoundSessionDocId) {
+                const sessionDocRef = doc(db, "gameAttempts", currentRoundSessionDocId);
+                try {
+                    await updateDoc(sessionDocRef, {
+                        status: "skipped",
+                        skippedTimestamp: serverTimestamp(),
+                        finalLivesSpent: 4 - lives, // Record current lives spent
+                        roundWon: false, // Round was not won as it was skipped
+                        skippedSet: true // Explicitly mark that the set was skipped
+                    });
+                    console.log(`Game session ${currentRoundSessionDocId} marked as skipped.`);
+                } catch (e) {
+                    console.error("Error marking game session as skipped: ", e);
+                }
+            }
+
+            if (currentGameSetId) { // Add current set ID to seen if it exists
+                seenGameSetIdsThisSession.add(currentGameSetId);
+            }
+            
+            const puzzleLoaded = await initializeNewRound(); // Load a new (unseen) puzzle
+            if (!puzzleLoaded) {
+                // initializeNewRound should have handled the case where no more puzzles are available
+                console.log("No new puzzle loaded after skipping. All might have been seen.");
+            }
+        };
+
+        // playAgain
+        window.playAgain = async () => {
+            finalScreen.style.display = 'none';
+            currentGameRound = 1; // Reset round counter for totalGameRounds logic
+            // currentGlobalPuzzleNumber will be incremented by initializeNewRound if a new puzzle is found
+            const puzzleLoaded = await initializeNewRound();
+        };
+
+        window.submitRating = async () => {
+            const overallRating = document.getElementById('overallRating').value;
+            const categoryMeaningfulness = document.getElementById('categoryMeaningfulness').value;
+            const categoryCreativity = document.getElementById('categoryCreativity').value;
+
+            if (db && currentRoundSessionDocId) {
+                const ratingDocRef = doc(db, "gameRatings", currentRoundSessionDocId); // Use same ID for linking
+                try {
+                    await setDoc(ratingDocRef, { // setDoc with merge:true or updateDoc if doc definitely exists
+                        playerName: playerName,
+                        setId: currentGameSetId,
+                        puzzleNumber: currentGlobalPuzzleNumber, // Save puzzle number with rating
+                        overallRating: parseInt(overallRating),
+                        categoryMeaningfulness: parseInt(categoryMeaningfulness),
+                        categoryCreativity: parseInt(categoryCreativity),
+                        ratingTimestamp: serverTimestamp(),
+                        plays_NYT: playsNYT
+                    }, { merge: true }); // Using merge: true in case we want to add other fields later
+                    console.log(`Rating saved for session ${currentRoundSessionDocId}`);
+                } catch (e) {
+                    console.error("Error saving rating to Firestore: ", e);
+                }
+            }
+            proceedToNextStep();
+        };
+
+        // proceedToNextStep
+        async function proceedToNextStep() {
+            if (currentGameRound < totalGameRounds) {
+                currentGameRound++;
+                ratingScreen.style.display = 'none';
+                // gameContainer display is managed by initializeNewRound
+                const puzzleLoaded = await initializeNewRound();
+                if (!puzzleLoaded) {
+                    // If a new puzzle didn't load (e.g., all seen),
+                    // initializeNewRound should have already shown the final screen.
+                }
+            } else {
+                ratingScreen.style.display = 'none';
+                finalScreen.style.display = 'flex';
+                // Ensure final screen button states are correct if we reached here via totalGameRounds
+                // (but if all puzzles ran out earlier, initializeNewRound already configured finalScreen)
+                const playAgainBtn = document.getElementById('playAgainButton');
+                const allSeenMessage = document.getElementById('allPuzzlesSeenMessage');
+
+                if (playAgainBtn && allSeenMessage) { // Check elements exist
+                     // If "all categories seen" message is already displayed, don't change it
+                    if (allSeenMessage.style.display !== 'block') {
+                        playAgainBtn.style.display = 'block';
+                        allSeenMessage.style.display = 'none';
                     }
                 }
             }
         }
 
+        document.getElementById('overallRating').addEventListener('input', (e) => {
+            document.getElementById('overallRatingValue').textContent = e.target.value;
+        });
+        document.getElementById('categoryMeaningfulness').addEventListener('input', (e) => {
+            document.getElementById('categoryMeaningfulnessValue').textContent = e.target.value;
+        });
+        document.getElementById('categoryCreativity').addEventListener('input', (e) => {
+            document.getElementById('categoryCreativityValue').textContent = e.target.value;
+        });
 
-        function freezeCategory(category, buttons) {
-            alert(`Верно! Это категория: ${category}`);
-            buttons.forEach(button => {
-                button.classList.remove('selected');
-                button.classList.add('frozen');
-            });
+        // Initial state setup on script load
+        updateLivesDisplay();
+        updateRevealedCategoriesDisplay();
+        // puzzleNumberDisplay will be set by the first call to initializeNewRound
 
-            frozenCategories.add(category);
-            selectedButtons.length = 0; // Reset selection
-
-            // Optionally: End game if all categories are frozen
-            if (frozenCategories.size === Object.keys(categories).length) {
-                alert("Вы завершили игру");
-            }
-        }
-
-        function updateLivesDisplay() {
-            livesDisplay.textContent = `Lives: ${lives}`;
-        }
-
-        function endGame() {
-            gameOverMessage.style.display = 'block';
-            let solutionText = "Solution: \n";
-            for (const category in categories) {
-                solutionText += `${category}: ${categories[category].join(', ')}\n`;
-            }
-            solutionDisplay.textContent = solutionText;
-
-            // Disable further button clicks
-            document.querySelectorAll('.grid button').forEach(button => {
-                button.disabled = true;
-            });
-        }
-
-        // Restart button functionality
-        document.getElementById('restartButton').addEventListener('click', initializeGame);
-
-        // Initialize game on load
-        initializeGame();
     </script>
+</head>
+
+<body>
+   <div class="intro-screen" id="introScreen">
+        <h2 style="text-align: center;">Добро пожаловать в Russian Connections!</h2>
+        <input type="text" id="nameInput" placeholder="Введите ваше имя">
+        <div id="nytQuestion" style="margin-bottom: 10px; text-align: center;">Вы играете в <i>New York Times Connections</i>?</div>
+        <div style="display: flex; gap: 10px; margin-bottom: 10px;">
+            <button id="nytYes" onclick="recordNYTAnswer(true)" disabled>Да</button>
+            <button id="nytNo" onclick="recordNYTAnswer(false)" disabled>Нет</button>
+        </div>
+        <button id="startGameButton" onclick="startGame()" disabled style="opacity: 0.6;">Начать игру</button>
+    </div>
+
+
+    <div id="gameContainer" style="display: none;">
+        <h1>Russian Connections (Головоломка №<span id="puzzleNumberDisplay">0</span>)</h1>
+        <div class="header-container">
+            <div class="lives" id="livesDisplay"></div>
+            <div id="warningMessage" class="warning-message"></div>
+        </div>
+        <div class="grid" id="buttonGrid">
+            </div>
+        <div class="category-display-container" id="categoryDisplayContainer">
+            <strong>Найденные категории:</strong>
+            </div>
+        <button id="confirmButton" onclick="confirmAndCheckCategory()" style="display: none;">Подтвердить</button>
+        <button id="alreadySeenButton" onclick="handleAlreadySeen()" style="display: none;">Уже видел</button>
+        
+        <div class="game-over" id="gameOverMessage" style="display: none;">
+            </div>
+        <div class="solution" id="solutionDisplay" style="margin-top: 10px;">
+            </div>
+        <button id="nextScreenButton" onclick="proceedToRatingScreen()" style="display: none;">Далее</button>
+    </div>
+
+    <div class="rating-screen" id="ratingScreen" style="display: none;">
+        <h2>Оцените игру</h2>
+        <div class="rating-item">
+            <label for="overallRating">Общие впечатления от игры (0-10):</label>
+            <input type="range" id="overallRating" min="0" max="10" value="5">
+            <span id="overallRatingValue">5</span>
+            <div class="rating-scale">
+                <span>0</span><span>1</span><span>2</span><span>3</span><span>4</span><span>5</span><span>6</span><span>7</span><span>8</span><span>9</span><span>10</span>
+            </div>
+        </div>
+        <div class="rating-item">
+            <label for="categoryMeaningfulness">Осмысленность категорий (0-10):</label>
+            <input type="range" id="categoryMeaningfulness" min="0" max="10" value="5">
+            <span id="categoryMeaningfulnessValue">5</span>
+            <div class="rating-scale">
+                <span>0</span><span>1</span><span>2</span><span>3</span><span>4</span><span>5</span><span>6</span><span>7</span><span>8</span><span>9</span><span>10</span>
+            </div>
+        </div>
+        <div class="rating-item">
+            <label for="categoryCreativity">Креативность категорий (0-10):</label>
+            <input type="range" id="categoryCreativity" min="0" max="10" value="5">
+            <span id="categoryCreativityValue">5</span>
+            <div class="rating-scale">
+                <span>0</span><span>1</span><span>2</span><span>3</span><span>4</span><span>5</span><span>6</span><span>7</span><span>8</span><span>9</span><span>10</span>
+            </div>
+        </div>
+        <button onclick="submitRating()">Отправить</button>
+    </div>
+
+    <div class="final-screen" id="finalScreen" style="display: none;">
+        <h2>Спасибо за игру!</h2>
+        <button id="playAgainButton" onclick="playAgain()">Сыграть ещё одну игру</button>
+        <p id="allPuzzlesSeenMessage" style="display: none; margin-top: 15px; font-weight: bold; color: #333;"></p>
+    </div>
 </body>
+
 </html>
+
