@@ -392,6 +392,19 @@
             background-color: #e9d5ff;
             color: #581c87;
         }
+
+        /* Added style for the review textarea */
+        .rating-screen textarea {
+            width: 80%;
+            max-width: 400px;
+            height: 100px;
+            padding: 10px;
+            font-size: 1rem;
+            border-radius: 6px;
+            border: 1px solid #ccc;
+            margin-bottom: 20px;
+            resize: vertical; /* Allow vertical resizing */
+        }
     </style>
     <script type="module">
         import {
@@ -425,7 +438,25 @@
             console.log("Firebase initialized successfully.");
         } catch (error) {
             console.error("Firebase initialization error:", error);
-            alert("Ошибка при инициализации Firebase. Проверьте конфигурацию и подключение к интернету. (См. консоль для деталей)");
+            // Using a custom message box instead of alert()
+            const messageBox = document.createElement('div');
+            messageBox.style.cssText = `
+                position: fixed;
+                top: 50%;
+                left: 50%;
+                transform: translate(-50%, -50%);
+                background-color: #fff;
+                padding: 20px;
+                border-radius: 8px;
+                box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+                z-index: 1000;
+                text-align: center;
+            `;
+            messageBox.innerHTML = `
+                <p>Ошибка при инициализации Firebase. Проверьте конфигурацию и подключение к интернету. (См. консоль для деталей)</p>
+                <button onclick="this.parentNode.remove()" style="margin-top: 10px; padding: 8px 16px; background-color: #3b82f6; color: white; border: none; border-radius: 4px; cursor: pointer;">ОК</button>
+            `;
+            document.body.appendChild(messageBox);
         }
 
         const introScreen = document.getElementById('introScreen');
@@ -447,6 +478,8 @@
         const nytYes = document.getElementById('nytYes');
         const nytNo = document.getElementById('nytNo');
         const startGameButton = document.getElementById('startGameButton');
+        // Get the review textarea element
+        const reviewTextarea = document.getElementById('reviewText');
 
         const selectedButtons = [];
         const frozenCategoriesData = [];
@@ -487,6 +520,7 @@
         });
 
 
+        // Function to shuffle an array
         function shuffleArray(array) {
             for (let i = array.length - 1; i > 0; i--) {
                 const j = Math.floor(Math.random() * (i + 1));
@@ -494,12 +528,13 @@
             }
         }
 
+        // Function to get category color class based on index
         function getCategoryColorClass(index) {
             const colorClasses = ['frozen-1', 'frozen-2', 'frozen-3', 'frozen-4'];
             return colorClasses[index % colorClasses.length];
         }
 
-        // recordNYTAnswer
+        // Function to record NYT answer (Yes/No)
         function recordNYTAnswer(answer) {
             playsNYT = answer;
             // Disable the NYT buttons after an answer
@@ -521,9 +556,9 @@
         }
         window.recordNYTAnswer = recordNYTAnswer;
 
-        // startGame
+        // Function to start the game
         window.startGame = async () => {
-            playerName = nameInput.value.trim().replace(/\s+/g, '_');
+            playerName = nameInput.value.trim().replace(/\s+/g, '_'); // Replace spaces for filename compatibility
             if (playerName && playsNYT !== null) {
                 currentGlobalPuzzleNumber = 0;
                 currentGameRound = 1;
@@ -545,16 +580,70 @@
                     console.log("Could not load the first puzzle. All might have been seen or no sets available.");
                 }
             } else if (!playerName) {
-                alert("Пожалуйста, введите ваше имя!");
+                // Using a custom message box instead of alert()
+                const messageBox = document.createElement('div');
+                messageBox.style.cssText = `
+                    position: fixed;
+                    top: 50%;
+                    left: 50%;
+                    transform: translate(-50%, -50%);
+                    background-color: #fff;
+                    padding: 20px;
+                    border-radius: 8px;
+                    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+                    z-index: 1000;
+                    text-align: center;
+                `;
+                messageBox.innerHTML = `
+                    <p>Пожалуйста, введите ваше имя!</p>
+                    <button onclick="this.parentNode.remove()" style="margin-top: 10px; padding: 8px 16px; background-color: #3b82f6; color: white; border: none; border-radius: 4px; cursor: pointer;">ОК</button>
+                `;
+                document.body.appendChild(messageBox);
             } else if (playsNYT === null) {
-                alert("Пожалуйста, ответьте на вопрос про New York Times Connections!");
+                // Using a custom message box instead of alert()
+                const messageBox = document.createElement('div');
+                messageBox.style.cssText = `
+                    position: fixed;
+                    top: 50%;
+                    left: 50%;
+                    transform: translate(-50%, -50%);
+                    background-color: #fff;
+                    padding: 20px;
+                    border-radius: 8px;
+                    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+                    z-index: 1000;
+                    text-align: center;
+                `;
+                messageBox.innerHTML = `
+                    <p>Пожалуйста, ответьте на вопрос про New York Times Connections!</p>
+                    <button onclick="this.parentNode.remove()" style="margin-top: 10px; padding: 8px 16px; background-color: #3b82f6; color: white; border: none; border-radius: 4px; cursor: pointer;">ОК</button>
+                `;
+                document.body.appendChild(messageBox);
             }
         };
 
-        // initializeNewRound
+        // Function to initialize a new game round
         async function initializeNewRound() {
             if (!db) {
-                alert("База данных Firebase не инициализирована. Игра не может начаться.");
+                // Using a custom message box instead of alert()
+                const messageBox = document.createElement('div');
+                messageBox.style.cssText = `
+                    position: fixed;
+                    top: 50%;
+                    left: 50%;
+                    transform: translate(-50%, -50%);
+                    background-color: #fff;
+                    padding: 20px;
+                    border-radius: 8px;
+                    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+                    z-index: 1000;
+                    text-align: center;
+                `;
+                messageBox.innerHTML = `
+                    <p>База данных Firebase не инициализирована. Игра не может начаться.</p>
+                    <button onclick="this.parentNode.remove()" style="margin-top: 10px; padding: 8px 16px; background-color: #3b82f6; color: white; border: none; border-radius: 4px; cursor: pointer;">ОК</button>
+                `;
+                document.body.appendChild(messageBox);
                 return false; // Indicate failure
             }
 
@@ -588,7 +677,25 @@
                 const querySnapshot = await getDocs(collection(db, "gameSets"));
                 if (querySnapshot.empty) {
                     console.error("No game sets found in Firestore 'gameSets' collection.");
-                    alert("Не удалось загрузить наборы игр: коллекция 'gameSets' пуста или не найдена.");
+                    // Using a custom message box instead of alert()
+                    const messageBox = document.createElement('div');
+                    messageBox.style.cssText = `
+                        position: fixed;
+                        top: 50%;
+                        left: 50%;
+                        transform: translate(-50%, -50%);
+                        background-color: #fff;
+                        padding: 20px;
+                        border-radius: 8px;
+                        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+                        z-index: 1000;
+                        text-align: center;
+                    `;
+                    messageBox.innerHTML = `
+                        <p>Не удалось загрузить наборы игр: коллекция 'gameSets' пуста или не найдена.</p>
+                        <button onclick="this.parentNode.remove()" style="margin-top: 10px; padding: 8px 16px; background-color: #3b82f6; color: white; border: none; border-radius: 4px; cursor: pointer;">ОК</button>
+                    `;
+                    document.body.appendChild(messageBox);
                     alreadySeenButton.style.display = 'none'; // Hide as there are no games to skip
 
                     // Show final screen with "no puzzles" message
@@ -646,7 +753,25 @@
                     });
                 } else {
                     console.error("Selected game set has no 'categories' field or is malformed:", currentGameSetId, gameSetData);
-                    alert(`Ошибка в данных игры для набора '${currentGameSetId}'. Поле 'categories' отсутствует или имеет неверный формат.`);
+                    // Using a custom message box instead of alert()
+                    const messageBox = document.createElement('div');
+                    messageBox.style.cssText = `
+                        position: fixed;
+                        top: 50%;
+                        left: 50%;
+                        transform: translate(-50%, -50%);
+                        background-color: #fff;
+                        padding: 20px;
+                        border-radius: 8px;
+                        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+                        z-index: 1000;
+                        text-align: center;
+                    `;
+                    messageBox.innerHTML = `
+                        <p>Ошибка в данных игры для набора '${currentGameSetId}'. Поле 'categories' отсутствует или имеет неверный формат.</p>
+                        <button onclick="this.parentNode.remove()" style="margin-top: 10px; padding: 8px 16px; background-color: #3b82f6; color: white; border: none; border-radius: 4px; cursor: pointer;">ОК</button>
+                    `;
+                    document.body.appendChild(messageBox);
                     alreadySeenButton.style.display = 'none';
                     return false; // Indicate failure
                 }
@@ -692,7 +817,25 @@
 
             } catch (error) {
                 console.error("Error fetching game sets or initializing session in Firestore:", error);
-                alert("Ошибка при загрузке наборов игр или инициализации сессии. Проверьте консоль.");
+                // Using a custom message box instead of alert()
+                const messageBox = document.createElement('div');
+                messageBox.style.cssText = `
+                    position: fixed;
+                    top: 50%;
+                    left: 50%;
+                    transform: translate(-50%, -50%);
+                    background-color: #fff;
+                    padding: 20px;
+                    border-radius: 8px;
+                    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+                    z-index: 1000;
+                    text-align: center;
+                `;
+                messageBox.innerHTML = `
+                    <p>Ошибка при загрузке наборов игр или инициализации сессии. Проверьте консоль.</p>
+                    <button onclick="this.parentNode.remove()" style="margin-top: 10px; padding: 8px 16px; background-color: #3b82f6; color: white; border: none; border-radius: 4px; cursor: pointer;">ОК</button>
+                `;
+                document.body.appendChild(messageBox);
                 alreadySeenButton.style.display = 'none';
                 // Can redirect to intro or show an error message
                 introScreen.style.display = 'flex';
@@ -702,6 +845,7 @@
         }
 
 
+        // Function to handle button clicks (selecting/deselecting words)
         function handleButtonClick(button) {
             if (button.classList.contains('frozen') || categoryConfirmed) {
                 return;
@@ -726,6 +870,7 @@
             }
         }
 
+        // Function to check if the player is "one away" from a category after an incorrect attempt
         function checkAlmostCategoryAfterIncorrectAttempt() {
             const currentSelectedWords = selectedButtons.map(button => button.textContent);
             let isOneAway = false;
@@ -754,6 +899,7 @@
         }
 
 
+        // Function to confirm and check the selected category
         async function confirmAndCheckCategory() {
             if (selectedButtons.length !== 4) return;
 
@@ -842,6 +988,7 @@
         window.confirmAndCheckCategory = confirmAndCheckCategory;
 
 
+        // Function to freeze the UI for a found category
         function freezeCategoryUI(categoryName, colorClass, categoryWords) {
             frozenCategoriesData.push({
                 name: categoryName,
@@ -857,6 +1004,7 @@
             selectedButtons.length = 0;
         }
 
+        // Function to update the display of revealed categories
         function updateRevealedCategoriesDisplay() {
             categoryDisplayContainer.innerHTML = '';
             const title = document.createElement('strong');
@@ -882,10 +1030,12 @@
         }
 
         const heartSymbol = '❤️';
+        // Function to update the lives display
         function updateLivesDisplay() {
             livesDisplay.textContent = `Жизни: ${heartSymbol.repeat(lives)}`;
         }
 
+        // Function to handle the end of a round (win or lose)
         async function handleRoundEnd(isWin) {
             gameOverMessage.style.display = 'block';
             alreadySeenButton.style.display = 'none';
@@ -931,18 +1081,21 @@
                 }
             }
         }
+        // Function to proceed to the rating screen
         window.proceedToRatingScreen = () => {
             gameContainer.style.display = 'none';
             ratingScreen.style.display = 'flex';
+            // Reset rating values and review text
             document.getElementById('overallRating').value = 5;
             document.getElementById('overallRatingValue').textContent = 5;
             document.getElementById('categoryMeaningfulness').value = 5;
             document.getElementById('categoryMeaningfulnessValue').textContent = 5;
             document.getElementById('categoryCreativity').value = 5;
             document.getElementById('categoryCreativityValue').textContent = 5;
+            reviewTextarea.value = ''; // Clear the review text area
         };
 
-        // handleAlreadySeen
+        // Function to handle "Already Seen" button click
         window.handleAlreadySeen = async () => {
             if (db && currentRoundSessionDocId) {
                 const sessionDocRef = doc(db, "gameAttempts", currentRoundSessionDocId);
@@ -971,7 +1124,7 @@
             }
         };
 
-        // playAgain
+        // Function to play again
         window.playAgain = async () => {
             finalScreen.style.display = 'none';
             currentGameRound = 1; // Reset round counter for totalGameRounds logic
@@ -979,10 +1132,12 @@
             const puzzleLoaded = await initializeNewRound();
         };
 
+        // Function to submit the game rating and review
         window.submitRating = async () => {
             const overallRating = document.getElementById('overallRating').value;
             const categoryMeaningfulness = document.getElementById('categoryMeaningfulness').value;
             const categoryCreativity = document.getElementById('categoryCreativity').value;
+            const reviewText = reviewTextarea.value.trim(); // Get the review text
 
             if (db && currentRoundSessionDocId) {
                 const ratingDocRef = doc(db, "gameRatings", currentRoundSessionDocId); // Use same ID for linking
@@ -994,6 +1149,7 @@
                         overallRating: parseInt(overallRating),
                         categoryMeaningfulness: parseInt(categoryMeaningfulness),
                         categoryCreativity: parseInt(categoryCreativity),
+                        reviewText: reviewText, // Save the review text
                         ratingTimestamp: serverTimestamp(),
                         plays_NYT: playsNYT
                     }, { merge: true }); // Using merge: true in case we want to add other fields later
@@ -1005,7 +1161,7 @@
             proceedToNextStep();
         };
 
-        // proceedToNextStep
+        // Function to proceed to the next step (new round or final screen)
         async function proceedToNextStep() {
             if (currentGameRound < totalGameRounds) {
                 currentGameRound++;
@@ -1112,6 +1268,10 @@
                 <span>0</span><span>1</span><span>2</span><span>3</span><span>4</span><span>5</span><span>6</span><span>7</span><span>8</span><span>9</span><span>10</span>
             </div>
         </div>
+        <div class="rating-item">
+            <label for="reviewText">Ваш отзыв:</label>
+            <textarea id="reviewText" placeholder="Прокомментируйте головоломку, если хотите..."></textarea>
+        </div>
         <button onclick="submitRating()">Отправить</button>
     </div>
 
@@ -1123,4 +1283,3 @@
 </body>
 
 </html>
-
